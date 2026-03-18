@@ -59,7 +59,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
             <div className="success-icon">✓</div>
             <h2>תודה רבה!</h2>
             <p>קיבלנו את פרטיך — ניצור איתך קשר בהקדם.</p>
-            <button className="btn-primary" onClick={handleClose}>
+            <button className="btn-submit" onClick={handleClose}>
               סגור
             </button>
           </div>
@@ -77,7 +77,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
               className="modal-form"
               noValidate
             >
-              {/* Honeypot — hidden from real users */}
+              {/* Honeypot */}
               <input
                 type="text"
                 name="website"
@@ -131,7 +131,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
               <button
                 type="submit"
-                className="btn-primary btn-full"
+                className="btn-submit"
                 disabled={isPending}
               >
                 {isPending ? (
