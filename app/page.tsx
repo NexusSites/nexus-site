@@ -61,6 +61,84 @@ const services = [
 ];
 
 /* ─────────────────────────────────────────────────────
+   Testimonials Data
+   ───────────────────────────────────────────────────── */
+const testimonials = [
+  {
+    quote: "האתר עלה תוך 3 שבועות. Google אוהב אותו. המכירות שלנו שיא ב-3 חודשים רצופים.",
+    name: "תומר לוי",
+    role: "בעלים, חנות אונליין",
+    initial: "ת",
+    stat: "+240% מכירות",
+  },
+  {
+    quote: 'הם לא שאלו אותי "מה אתה אוהב". הם שאלו "למה. כמה. כמה אתה רוצה לגדול". זה שינה הכל.',
+    name: "רחל מזרחי",
+    role: "מנהלת שיווק, סטארטאפ B2B",
+    initial: "ר",
+    stat: "+3 לקוחות חדשים",
+  },
+  {
+    quote: "שלוש שנים ניסיתי חברות שונות. ב-Nexus Sites — האנשים שהביאו לי לידים אמיתיים מהאתר.",
+    name: 'ד"ר אבי כהן',
+    role: "מרפאה פרטית",
+    initial: "ד",
+    stat: "+18 לידים/חודש",
+  },
+];
+
+/* ─────────────────────────────────────────────────────
+   Value Props Data
+   ───────────────────────────────────────────────────── */
+const valueProps = [
+  {
+    icon: "⚡",
+    title: "מהירות",
+    desc: "תוך 24 שעות יש לך תמונה ברורה של מה שאפשר לעשות, ובכמה.",
+  },
+  {
+    icon: "◎",
+    title: "בהירות",
+    desc: "שיחה ישירה. ללא מכירה. ללא buzzwords. רק מה שבאמת ייז את המחט.",
+  },
+  {
+    icon: "✓",
+    title: "התחייבות",
+    desc: "אם לא נוכל ליצור תוצאות — נגיד את זה מראש. כבוד הדדי.",
+  },
+];
+
+/* ─────────────────────────────────────────────────────
+   FAQ Data
+   ───────────────────────────────────────────────────── */
+const faqs = [
+  {
+    q: "כמה עולה בניית אתר?",
+    a: "כל פרויקט שונה — תלוי בהיקף, בפונקציונליות ובמורכבות הטכנית. לכן אנחנו מציעים הצעת מחיר מפורטת תוך 24 שעות, בחינם, ללא כל התחייבות. אין מחירי מדף כי אין פתרונות מדף.",
+  },
+  {
+    q: "כמה זמן לוקח לבנות אתר?",
+    a: "פרויקט ממוצע עומד על 3–6 שבועות מרגע אישור הקונספט. אתרים פשוטים יותר — מהר יותר. אתרים מורכבים עם לוגיקה עסקית — בהתאם. בכל מקרה, לוח הזמנים מוסכם מראש ומכובד.",
+  },
+  {
+    q: "האם אתם עובדים עם עסקים קטנים?",
+    a: "כן. חלק גדול מהלקוחות שלנו הם עסקים קטנים ובינוניים שמחפשים לזנק קדימה. גודל העסק לא קובע — הרצינות שלך כן.",
+  },
+  {
+    q: "מה ההבדל בינכם לבין פרילנסר או סוכנות רגילה?",
+    a: "פרילנסר בונה מה שאתה מבקש. סוכנות רגילה מוכרת לך חבילה. אנחנו שואלים שאלות עסקיות, מבינים את המטרות, ובונים ארכיטקטורה שמשרתת אותן — לא אתר שנראה טוב בפורטפוליו שלנו.",
+  },
+  {
+    q: "האם יש תמיכה לאחר השקה?",
+    a: "כן. אנחנו מציעים חבילות תחזוקה ואופטימיזציה שוטפת. האתר לא נגמר ביום ההשקה — הוא מתחיל אז.",
+  },
+  {
+    q: "האם אתם עושים גם SEO?",
+    a: "SEO הוא חלק בלתי נפרד מהאופן שבו אנחנו בונים — לא תוספת. ארכיטקטורת מידע, Core Web Vitals, סכמות, ומבנה טכני נכון הם ברירת מחדל אצלנו, לא אופציה.",
+  },
+];
+
+/* ─────────────────────────────────────────────────────
    About Features Data
    ───────────────────────────────────────────────────── */
 const features = [
@@ -75,6 +153,7 @@ const features = [
    ═════════════════════════════════════════════════════ */
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const mainRef = useRef<HTMLDivElement>(null);
 
   /* ── GSAP + Lenis Initialization ── */
@@ -156,6 +235,30 @@ export default function Home() {
         y: 30,
         duration: 0.7,
         delay: i * 0.08,
+        ease: "power3.out",
+      });
+    });
+
+    /* ── Testimonials Reveal ── */
+    gsap.utils.toArray<HTMLElement>(".testimonial-card").forEach((card, i) => {
+      gsap.from(card, {
+        scrollTrigger: { trigger: card, start: "top 88%" },
+        opacity: 0,
+        y: 50,
+        duration: 0.9,
+        delay: i * 0.1,
+        ease: "power3.out",
+      });
+    });
+
+    /* ── Value Props Reveal ── */
+    gsap.utils.toArray<HTMLElement>(".value-prop-card").forEach((card, i) => {
+      gsap.from(card, {
+        scrollTrigger: { trigger: card, start: "top 88%" },
+        opacity: 0,
+        y: 40,
+        duration: 0.8,
+        delay: i * 0.1,
         ease: "power3.out",
       });
     });
@@ -336,6 +439,68 @@ export default function Home() {
         </section>
 
         {/* ══════════════════════════════
+           TESTIMONIALS
+           ══════════════════════════════ */}
+        <section className="testimonials-section" id="testimonials">
+          <div className="testimonials-inner">
+            <div className="testimonials-heading">
+              <span className="section-label">מה אומרים הלקוחות</span>
+              <h2>
+                לא אנחנו אומרים.<br />
+                <span className="gold">הם</span> אומרים.
+              </h2>
+            </div>
+            <div className="testimonials-grid">
+              {testimonials.map((t) => (
+                <div key={t.name} className="testimonial-card magnetic">
+                  <div className="testimonial-quote-mark">&ldquo;</div>
+                  <p className="testimonial-text">{t.quote}</p>
+                  <div className="testimonial-footer">
+                    <div className="testimonial-stat">{t.stat}</div>
+                    <div className="testimonial-author">
+                      <div className="testimonial-avatar">{t.initial}</div>
+                      <div>
+                        <div className="testimonial-name">{t.name}</div>
+                        <div className="testimonial-role">{t.role}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════
+           VALUE PROPS
+           ══════════════════════════════ */}
+        <section className="value-props-section" id="value">
+          <div className="value-props-inner">
+            <div className="value-props-heading">
+              <span className="section-label">מה אתה מקבל</span>
+              <h2>
+                הצעת מחיר תוך 24 שעות.<br />
+                שיחת אסטרטגיה ללא עלות.
+              </h2>
+            </div>
+            <div className="value-props-grid">
+              {valueProps.map((v) => (
+                <div key={v.title} className="value-prop-card">
+                  <div className="value-prop-icon">{v.icon}</div>
+                  <h3>{v.title}</h3>
+                  <p>{v.desc}</p>
+                </div>
+              ))}
+            </div>
+            <div className="value-props-cta">
+              <button className="btn-gold magnetic" onClick={() => setModalOpen(true)}>
+                קבל הצעת מחיר
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════
            ABOUT — Editorial
            ══════════════════════════════ */}
         <section className="about-section" id="about">
@@ -370,21 +535,60 @@ export default function Home() {
         </section>
 
         {/* ══════════════════════════════
+           FAQ
+           ══════════════════════════════ */}
+        <section className="faq-section" id="faq">
+          <div className="faq-inner">
+            <div className="faq-heading">
+              <span className="section-label">שאלות נפוצות</span>
+              <h2>
+                יש לך שאלות.<br />
+                <span className="gold">יש לנו תשובות.</span>
+              </h2>
+            </div>
+            <div className="faq-list">
+              {faqs.map((item, i) => (
+                <div
+                  key={i}
+                  className={`faq-item${openFaq === i ? " faq-item--open" : ""}`}
+                >
+                  <button
+                    className="faq-question"
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    aria-expanded={openFaq === i}
+                  >
+                    <span>{item.q}</span>
+                    <span className="faq-icon">{openFaq === i ? "−" : "+"}</span>
+                  </button>
+                  <div className="faq-answer">
+                    <div className="faq-answer-inner">
+                      <p>{item.a}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════
            CTA
            ══════════════════════════════ */}
         <section className="cta-section">
-          <h2>המתחרים שלך כבר שדרגו.</h2>
-          <p>
-            כל יום שהאתר שלך לא עובד בשבילך — הוא עובד נגדך.
-            השאר פרטים — נחזור עם ניתוח ראשוני תוך 24 שעות.
-          </p>
+          <span className="section-label">הצעד הבא שלך</span>
+          <h2>
+            המתחרים שלך<br />
+            כבר <span className="gold">שדרגו.</span>
+          </h2>
+          <p>השאלה היא אם אתה הבא.</p>
           <button
             className="btn-gold magnetic"
             onClick={() => setModalOpen(true)}
             id="cta-banner-btn"
           >
-            הגש בקשה לפרויקט
+            התחל עכשיו
           </button>
+          <div className="cta-footnote">שיחת אסטרטגיה ראשונה ללא עלות — הצעת מחיר תוך 24 שעות</div>
         </section>
 
         {/* ══════════════════════════════
