@@ -20,15 +20,29 @@ export default function CustomCursor() {
       gsap.to(outer, {
         x: e.clientX,
         y: e.clientY,
-        duration: 0.45,
+        duration: 0.4,
         ease: "power3.out",
         overwrite: "auto",
       });
     };
 
     /* grow cursor on interactive elements */
-    const onEnter = () => gsap.to(outer, { scale: 1.8, opacity: 0.6, duration: 0.35, ease: "power2.out" });
-    const onLeave = () => gsap.to(outer, { scale: 1, opacity: 1, duration: 0.35, ease: "power2.out" });
+    const onEnter = () =>
+      gsap.to(outer, {
+        scale: 1.6,
+        opacity: 0.5,
+        borderColor: "rgba(99, 91, 255, 0.6)",
+        duration: 0.3,
+        ease: "power2.out",
+      });
+    const onLeave = () =>
+      gsap.to(outer, {
+        scale: 1,
+        opacity: 1,
+        borderColor: "rgba(99, 91, 255, 0.35)",
+        duration: 0.3,
+        ease: "power2.out",
+      });
 
     const bindHovers = () => {
       document.querySelectorAll("button, a, .magnetic").forEach((el) => {
