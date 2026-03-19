@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Heebo } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const heebo = Heebo({
@@ -21,7 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="he" dir="rtl" className={heebo.variable}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Script src="https://cdn.enable.co.il/licenses/enable-L54535rnygtndxeb-0326-80797/init.js" strategy="lazyOnload" />
+      </body>
     </html>
   );
 }

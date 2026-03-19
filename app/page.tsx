@@ -45,18 +45,18 @@ function NexusLogo({ className = "" }: { className?: string }) {
 const services = [
   {
     index: "01",
-    title: "בניית אתרים",
-    desc: "אנחנו בונים אתרים מהירים, מעוצבים ומותאמים לכל מכשיר — ממשקי משתמש מנצחים שמשאירים רושם.",
+    title: "הנדסת UI/UX ממירה",
+    desc: "ממשקים שמובילים את המבקר בדיוק לאן שאתה צריך. כל אלמנט מבוסס על לוגיקת המרה, לא על טעם אישי.",
   },
   {
     index: "02",
-    title: "עיצוב מודרני",
-    desc: "עיצוב UI/UX ברמה גבוהה שמשלב אסתטיקה מרהיבה עם חוויית משתמש אינטואיטיבית.",
+    title: "ארכיטקטורת SEO מבוססת נתונים",
+    desc: "לא \"קידום אתרים\". תשתית טכנית שמובנית מהיסוד לדומיננטיות במנועי חיפוש — מבנה, סכמות, Core Web Vitals.",
   },
   {
     index: "03",
-    title: "קידום SEO",
-    desc: "אסטרטגיית SEO מבוססת נתונים שמניחה את האתר שלך בראש תוצאות החיפוש ומביאה תנועה אורגנית.",
+    title: "אופטימיזציית ביצועים",
+    desc: "0.5 שניות טעינה. אפס פשרות. קוד נקי, תשתית CDN גלובלית, וכל פיקסל מותאם לביצועי שיא.",
   },
 ];
 
@@ -64,10 +64,10 @@ const services = [
    About Features Data
    ───────────────────────────────────────────────────── */
 const features = [
-  { num: "01", name: "עיצוב מותאם אישית" },
-  { num: "02", name: "מהירות טעינה ו-Core Web Vitals" },
-  { num: "03", name: "אופטימיזציה למנועי חיפוש" },
-  { num: "04", name: "תמיכה ותחזוקה" },
+  { num: "01", name: "ארכיטקטורת קוד חסינה" },
+  { num: "02", name: "UX מבוסס מחקר ודאטה" },
+  { num: "03", name: "ביצועים ברמת Enterprise" },
+  { num: "04", name: "מדידה ואופטימיזציה מתמדת" },
 ];
 
 /* ═════════════════════════════════════════════════════
@@ -218,7 +218,7 @@ export default function Home() {
     return () => {
       lenis.destroy();
       ScrollTrigger.getAll().forEach((st) => st.kill());
-      gsap.ticker.remove(() => {});
+      gsap.ticker.remove(() => { });
       tiltHandlers.forEach(({ move, leave }, card) => {
         card.removeEventListener("mousemove", move);
         card.removeEventListener("mouseleave", leave);
@@ -248,7 +248,7 @@ export default function Home() {
               onClick={() => setModalOpen(true)}
               id="navbar-cta"
             >
-              קבל הצעת מחיר
+              תאם שיחת אסטרטגיה
             </button>
           </div>
         </nav>
@@ -258,26 +258,26 @@ export default function Home() {
            ══════════════════════════════ */}
         <section className="hero" id="hero">
           <div className="hero-label">
-            ✦&ensp;סוכנות ווב פרמיום&ensp;✦
+            ✦&ensp;ארכיטקטורה דיגיטלית פרמיום&ensp;✦
           </div>
 
           <h1 className="hero-title">
             <div className="line-mask">
-              <div className="line-inner">אנחנו Nexus Sites</div>
+              <div className="line-inner">אנחנו לא בונים אתרים.</div>
             </div>
             <div className="line-mask">
-              <div className="line-inner">בונים אתרי אינטרנט</div>
+              <div className="line-inner">אנחנו מהנדסים</div>
             </div>
             <div className="line-mask">
               <div className="line-inner">
-                שמביאים <span className="gold">לקוחות</span>
+                מכונות <span className="gold">צמיחה</span> דיגיטליות.
               </div>
             </div>
           </h1>
 
           <p className="hero-sub">
-            מסוכנות איקומרס מודרנית ועד חנויות לעסקים שרוצים לגדול.
-            מהרעיון ועד ההשקה — אנחנו לצידך.
+            האתר שלך הוא לא חלון ראווה — הוא הנכס העסקי הכי קריטי שלך.
+            אנחנו בונים אותו בהתאם.
           </p>
 
           <div className="hero-cta">
@@ -286,25 +286,25 @@ export default function Home() {
               onClick={() => setModalOpen(true)}
               id="hero-cta"
             >
-              קבל הצעת מחיר
+              תאם שיחת אסטרטגיה
             </button>
-            <a className="btn-ghost magnetic" href="#services">
-              הכירו אותנו
+            <a className="btn-ghost magnetic" href="#about">
+              גלה את המתודולוגיה
             </a>
           </div>
 
           <div className="hero-stats">
             <div className="stat-block">
               <div className="stat-value">3x</div>
-              <div className="stat-label">יחס המרה</div>
+              <div className="stat-label">יחס המרה ממוצע</div>
             </div>
             <div className="stat-block">
-              <div className="stat-value">98%</div>
-              <div className="stat-label">שביעות רצון</div>
+              <div className="stat-value">99.8%</div>
+              <div className="stat-label">זמן פעילות</div>
             </div>
             <div className="stat-block">
-              <div className="stat-value">+50</div>
-              <div className="stat-label">פרויקטים שהושלמו</div>
+              <div className="stat-value">&lt;0.5s</div>
+              <div className="stat-label">זמן טעינה</div>
             </div>
           </div>
         </section>
@@ -315,11 +315,11 @@ export default function Home() {
         <section className="services-section" id="services">
           <div className="services-wrap">
             <div className="services-header">
-              <span className="services-label">מה אנחנו מציעים</span>
+              <span className="services-label">מה אנחנו בונים</span>
               <h2>
-                פתרון<br />
-                דיגיטלי<br />
-                מקיף
+                פתרונות.<br />
+                לא<br />
+                שירותים.
               </h2>
             </div>
 
@@ -341,18 +341,18 @@ export default function Home() {
         <section className="about-section" id="about">
           <div className="about-grid">
             <div className="about-label-cell">
-              <div className="about-label-text">קצת עלינו</div>
+              <div className="about-label-text">הגישה שלנו</div>
               <h2 className="about-title">
-                מי<br />אנחנו?
+                מתודולוגיה.<br />לא אינטואיציה.
               </h2>
             </div>
 
             <div className="about-body-cell">
               <p className="about-body-text">
-                Nexus Sites היא סוכנות לבניית אתרים המתמקדת ביצירת אתרים
-                מודרניים, מהירים וממירים שמביאים לעסקים יותר לקוחות.
-                אנחנו מאמינים שכל עסק, קטן כגדול, ראוי לנוכחות דיגיטלית
-                שמייצגת אותו בצורה הטובה ביותר.
+                כל אתר שאנחנו בונים נשען על ארכיטקטורה לוגית,
+                קוד ללא פשרות, ומסלולי משתמש שתוכננו בדייקנות
+                כירורגית. אנחנו לא מעצבים לפי טעם —
+                אנחנו מהנדסים לפי נתונים.
               </p>
             </div>
 
@@ -373,14 +373,17 @@ export default function Home() {
            CTA
            ══════════════════════════════ */}
         <section className="cta-section">
-          <h2>מוכן לאתר שיגדיל את העסק שלך?</h2>
-          <p>השאר פרטים עכשיו — ניצור איתך קשר תוך 24 שעות.</p>
+          <h2>המתחרים שלך כבר שדרגו.</h2>
+          <p>
+            כל יום שהאתר שלך לא עובד בשבילך — הוא עובד נגדך.
+            השאר פרטים — נחזור עם ניתוח ראשוני תוך 24 שעות.
+          </p>
           <button
             className="btn-gold magnetic"
             onClick={() => setModalOpen(true)}
             id="cta-banner-btn"
           >
-            קבל הצעת מחיר חינם
+            הגש בקשה לפרויקט
           </button>
         </section>
 
@@ -393,9 +396,26 @@ export default function Home() {
               <NexusLogo />
               <span className="footer-brand-name">Nexus Sites</span>
             </div>
-            <span className="footer-copy">
-              © {new Date().getFullYear()} Nexus Sites — כל הזכויות שמורות
-            </span>
+
+            <div className="footer-contact">
+              <a href="tel:+972500000000" className="footer-link magnetic" aria-label="Phone">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+              </a>
+              <a href="mailto:office@nexussites.co.il" className="footer-link magnetic" aria-label="Email">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+              </a>
+              <a href="https://wa.me/972500000000" target="_blank" rel="noreferrer" className="footer-link magnetic" aria-label="WhatsApp">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                </svg>
+              </a>
+            </div>
+
+            <div className="footer-legal">
+              <span className="footer-copy">
+                © {new Date().getFullYear()} Nexus Sites — כל הזכויות שמורות
+              </span>
+            </div>
           </div>
         </footer>
       </div>
