@@ -5,6 +5,7 @@ import "./globals.css";
 
 const heebo = Heebo({
   subsets: ["latin", "hebrew"],
+  weight: ["300", "400", "500", "700", "900"],
   variable: "--font-heebo",
   display: "swap",
 });
