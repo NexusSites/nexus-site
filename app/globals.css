@@ -29,7 +29,7 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  cursor: none;                /* hide default — CustomCursor takes over */
+  cursor: auto;
 }
 
 /* Restore default cursor on touch devices */
@@ -37,7 +37,7 @@ body {
 
 a   { color: inherit; text-decoration: none; }
 ul  { list-style: none; }
-button { font-family: inherit; cursor: none; }
+button { font-family: inherit; }
 ::selection { background: rgba(255,255,255,.15); color: #fff; }
 
 /* ─── Display type utility ────────────────────────── */

@@ -22,7 +22,6 @@ import { useState, useEffect } from 'react';
 import Lenis from 'lenis';
 
 import Preloader       from '@/components/Preloader';
-import CustomCursor    from '@/components/CustomCursor';
 import NavBar          from '@/components/NavBar';
 import Hero            from '@/components/Hero';
 import CaseStudies     from '@/components/CaseStudies';
@@ -75,12 +74,9 @@ export default function Home() {
       {/* ── Preloader ── */}
       {!loaded && <Preloader onComplete={() => setLoaded(true)} />}
 
-      {/* ── Fixed UI layers ── */}
-      <CustomCursor />
-
       {/* ── Page sections ── */}
       <NavBar         onCtaClick={openModal} ready={loaded} />
-      <Hero />
+      <Hero ready={loaded} />
       <CaseStudies    onCtaClick={openModal} />
       <Stats />
       <About />

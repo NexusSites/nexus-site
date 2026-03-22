@@ -12,13 +12,26 @@
  */
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 
 const HeroCanvas = dynamic(() => import('./HeroCanvas'), { ssr: false });
+const MatrixRain = dynamic(() => import('./MatrixRain'), { ssr: false });
 
 const EXPO = [0.19, 1, 0.22, 1] as const;
+
+/* ── Typing text ── */
+const HERO_TEXT = 'שלום, החיפוש שלך נגמר.\nברוך הבא לאתר החדש שלך.';
+
+/* Human-like per-character delay in ms */
+function typingDelay(ch: string) {
+  if (ch === '\n') return 600;
+  if (ch === ' ') return 60 + Math.random() * 40;
+  if (ch === ',') return 200 + Math.random() * 100;
+  if (ch === '.') return 300 + Math.random() * 100;
+  return 55 + Math.random() * 45;
+}
 
 /* Body words to reveal one by one */
 const WORDS = [
@@ -51,10 +64,50 @@ function wordStyle(wordIndex: number, total: number, progress: number, startOffs
   };
 }
 
-export default function Hero() {
+export default function Hero({ ready = false }: { ready?: boolean }) {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const stickyRef  = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [showText, setShowText]   = useState(false);
+  const [tvOn, setTvOn]           = useState(false);
+  const [tvContent, setTvContent] = useState(false);
+  const [typedChars, setTypedChars] = useState(0);
+  const [mouse, setMouse] = useState({ x: -9999, y: -9999 });
+  const [viewSize, setViewSize] = useState({ w: 0, h: 0 });
+
+  /* ── Track mouse inside sticky viewport ── */
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!stickyRef.current) return;
+    const rect = stickyRef.current.getBoundingClientRect();
+    setMouse({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }, []);
+
+  /* ── Track viewport size for canvas ── */
+  useEffect(() => {
+    const update = () => setViewSize({ w: window.innerWidth, h: window.innerHeight });
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  /* ── TV turn-on → typing animation ── */
+  useEffect(() => {
+    if (!ready) return;
+    // Phase 1: TV flickers on (scaleY expands)
+    const t1 = setTimeout(() => setTvOn(true), 100);
+    // Phase 2: content appears after TV is on
+    const t2 = setTimeout(() => setTvContent(true), 550);
+    // Phase 3: start typing after content is visible
+    const timers: ReturnType<typeof setTimeout>[] = [t1, t2];
+    let elapsed = 750;
+
+    for (let i = 0; i < HERO_TEXT.length; i++) {
+      elapsed += typingDelay(HERO_TEXT[i]);
+      timers.push(setTimeout(() => setTypedChars(i + 1), elapsed));
+    }
+
+    return () => timers.forEach(clearTimeout);
+  }, [ready]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -89,10 +142,98 @@ export default function Hero() {
       style={{ height: '600vh' }}
     >
       {/* ── Sticky viewport ── */}
-      <div className="sticky top-0 h-screen overflow-hidden">
+      <div ref={stickyRef} className="sticky top-0 h-screen overflow-hidden" onMouseMove={onMouseMove}>
 
         {/* Full-screen N canvas */}
         <HeroCanvas progress={progress} />
+
+        {/* ── Matrix rain — revealed only by flashlight ── */}
+        <div
+          className="absolute inset-0 z-[4]"
+          style={{
+            opacity: showText ? 0 : 1,
+            transition: 'opacity 0.6s',
+            pointerEvents: 'none',
+            maskImage: `radial-gradient(circle 260px at ${mouse.x}px ${mouse.y}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)`,
+            WebkitMaskImage: `radial-gradient(circle 260px at ${mouse.x}px ${mouse.y}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)`,
+          }}
+        >
+          {viewSize.w > 0 && <MatrixRain width={viewSize.w} height={viewSize.h} />}
+        </div>
+
+        {/* ── Typing text inside terminal window ── */}
+        <motion.div
+          className="absolute inset-0 z-[5] flex items-center justify-center"
+          animate={{ opacity: showText ? 0 : 0.85, y: showText ? -30 : 0 }}
+          transition={{ duration: 0.6, ease: EXPO }}
+          style={{ pointerEvents: 'none' }}
+        >
+          {/* Terminal frame — TV turn-on effect */}
+          <motion.div
+            className="rounded-xl overflow-hidden shadow-2xl border border-white/10"
+            initial={{ scaleY: 0.005, scaleX: 0.6, opacity: 0 }}
+            animate={{
+              scaleY: tvOn ? 1 : 0.005,
+              scaleX: tvOn ? 1 : 0.6,
+              opacity: tvOn ? 1 : 0.8,
+            }}
+            transition={{
+              scaleY: { duration: 0.4, ease: [0.34, 1.56, 0.64, 1] },
+              scaleX: { duration: 0.6, ease: EXPO },
+              opacity: { duration: 0.15 },
+            }}
+            style={{
+              width: 'clamp(320px, 42vw, 560px)',
+              background: 'rgba(17, 17, 17, 0.85)',
+              backdropFilter: 'blur(12px)',
+            }}
+          >
+            {/* Title bar */}
+            <motion.div
+              className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border-b border-white/10"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: tvContent ? 1 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <span className="w-3 h-3 rounded-full bg-white/20" />
+              <span className="w-3 h-3 rounded-full bg-white/20" />
+              <span className="w-3 h-3 rounded-full bg-white/20" />
+              <span className="flex-1 text-center text-[0.65rem] text-white/30 tracking-wider font-mono">code.tsx</span>
+            </motion.div>
+            {/* Text area */}
+            <div
+              className="p-5 text-center"
+              dir="rtl"
+              style={{ height: `${HERO_TEXT.split('\n').length * 2.4 + 1}em` }}
+            >
+              {HERO_TEXT.split('\n').map((line, li) => {
+                const lineStart = HERO_TEXT.split('\n').slice(0, li).join('\n').length + (li > 0 ? 1 : 0);
+                const lineEnd = lineStart + line.length;
+                const visibleCount = Math.max(0, Math.min(line.length, typedChars - lineStart));
+                if (visibleCount === 0 && typedChars <= lineStart) return <div key={li} className="h-[2.4em]" />;
+
+                const cursorHere = typedChars > lineStart && typedChars <= lineEnd;
+
+                return (
+                  <div
+                    key={li}
+                    className="text-white font-light tracking-wide leading-[2.4]"
+                    style={{ fontSize: 'clamp(0.9rem, 1.8vw, 1.25rem)' }}
+                  >
+                    {line.slice(0, visibleCount)}
+                    {cursorHere && (
+                      <motion.span
+                        className="inline-block w-[2px] h-[1em] bg-white/80 ml-[2px] align-middle"
+                        animate={{ opacity: [1, 0, 1] }}
+                        transition={{ duration: 0.8, repeat: Infinity }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </motion.div>
 
         {/* ── Hero intro text — fades out before gate ── */}
         <div style={{ opacity: heroTextFade, transition: 'opacity 0.15s' }}>
@@ -191,20 +332,30 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Scroll hint — fades out once scrolling starts */}
+        {/* Scroll hint — follows cursor */}
         <motion.div
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-10"
-          animate={{ opacity: showText ? 0 : 1, y: showText ? -10 : 0 }}
-          transition={{ duration: 0.5, ease: EXPO }}
+          className="absolute z-[6] pointer-events-none"
+          animate={{
+            opacity: showText ? 0 : 1,
+          }}
+          transition={{ duration: 0.4, ease: EXPO }}
+          style={{
+            left: mouse.x + 20,
+            top: mouse.y + 20,
+          }}
         >
-          <span className="text-[0.65rem] tracking-[0.25em] uppercase text-white/40 font-medium">
-            Scroll to explore
-          </span>
-          <motion.div
-            className="w-px h-12 bg-gradient-to-b from-white/50 to-transparent"
-            animate={{ scaleY: [1, 0.4, 1], opacity: [0.3, 1, 0.3] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-          />
+          <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-full px-5 py-2 flex items-center gap-2.5">
+            <span className="text-xs tracking-[0.2em] uppercase text-white font-semibold whitespace-nowrap">
+              Scroll down
+            </span>
+            <motion.span
+              className="text-white/80 text-sm"
+              animate={{ y: [0, 3, 0] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              ↓
+            </motion.span>
+          </div>
         </motion.div>
 
       </div>
