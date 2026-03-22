@@ -66,7 +66,7 @@ export default function Home() {
       <CustomCursor />
 
       {/* ── Page sections ── */}
-      <NavBar         onCtaClick={openModal} />
+      <NavBar         onCtaClick={openModal} ready={loaded} />
       <Hero />
       <CaseStudies    onCtaClick={openModal} />
       <Stats />
