@@ -13,9 +13,12 @@
  */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import MagneticButton from './MagneticButton';
+
+const MatrixRain = dynamic(() => import('./MatrixRain'), { ssr: false });
 
 const PROJECTS = [
   {
@@ -156,12 +159,41 @@ interface CaseStudiesProps {
 }
 
 export default function CaseStudies({ onCtaClick }: CaseStudiesProps) {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [mouse, setMouse] = useState({ x: -9999, y: -9999 });
+  const [viewSize, setViewSize] = useState({ w: 0, h: 0 });
+
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    setMouse({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }, []);
+
+  useEffect(() => {
+    const update = () => setViewSize({ w: window.innerWidth, h: window.innerHeight });
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
   return (
-    <section id="work" className="border-b border-white/10">
+    <section ref={sectionRef} id="work" className="relative border-b border-white/10" onMouseMove={onMouseMove}>
+
+      {/* ── Matrix rain — revealed by flashlight ── */}
+      <div
+        className="absolute inset-0 z-0 overflow-hidden"
+        style={{
+          pointerEvents: 'none',
+          maskImage: `radial-gradient(circle 260px at ${mouse.x}px ${mouse.y}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)`,
+          WebkitMaskImage: `radial-gradient(circle 260px at ${mouse.x}px ${mouse.y}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)`,
+        }}
+      >
+        {viewSize.w > 0 && <MatrixRain width={viewSize.w} height={2000} />}
+      </div>
 
       {/* Header */}
       <motion.div
-        className="px-6 md:px-16 pt-20 pb-12 border-b border-white/10"
+        className="relative z-[1] px-6 md:px-16 pt-20 pb-12 border-b border-white/10"
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-80px' }}
@@ -177,7 +209,7 @@ export default function CaseStudies({ onCtaClick }: CaseStudiesProps) {
 
       {/* 2×2 Grid */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-2"
+        className="relative z-[1] grid grid-cols-1 md:grid-cols-2"
         variants={containerVariants}
         initial="hidden"
         whileInView="show"
