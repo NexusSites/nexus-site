@@ -22,7 +22,7 @@ const EXPO = [0.19, 1, 0.22, 1] as const;
 
 /* Body words to reveal one by one */
 const WORDS = [
-  'אנחנו', 'CO/>E', '—', 'צוות', 'של',
+  'אנחנו', 'CODE', '—', 'צוות', 'של',
   'מעצבים', 'ומפתחים', 'שבונים', 'חוויות', 'דיגיטליות',
   'שמניעות', 'עסקים', 'קדימה.',
 ];
@@ -45,7 +45,7 @@ function wordStyle(wordIndex: number, total: number, progress: number, startOffs
   const end   = start + band * 1.4;
   const p     = clamp01((progress - start) / (end - start));
   return {
-    opacity: 0.08 + p * 0.92,
+    opacity: p,
     filter:  `blur(${(1 - p) * 10}px)`,
     transition: 'opacity 0.1s, filter 0.1s',
   };
@@ -74,7 +74,7 @@ export default function Hero() {
   const heroTextFade = 1 - clamp01((progress - 0.28) / 0.10);
 
   /* Heading — appears on the slab, starts diagonal, straightens */
-  const SLASH_DEG = -21.3; // matches -SLASH_ANGLE in HeroCanvas (/ direction)
+  const SLASH_DEG = -68.75; // 90 - atan2(0.35, 0.9)*180/PI — matches slash from horizontal
   const headingOpacity = clamp01((progress - 0.42) / 0.06);
   const straightenT = clamp01((progress - 0.50) / 0.15);
   const headingRotation = SLASH_DEG * (1 - straightenT);
@@ -122,14 +122,23 @@ export default function Hero() {
           </div>
         </div>
 
+        {/* ── White background overlay — appears during slab phase ── */}
+        <div
+          className="absolute inset-0 z-10 bg-white"
+          style={{
+            opacity: clamp01((progress - 0.50) / 0.15),
+            pointerEvents: 'none',
+          }}
+        />
+
         {/* ── Heading — starts centered on slab, moves up when steps appear ── */}
         <h2
           className="absolute z-20 font-black text-[#111] text-center tracking-[-0.04em] leading-[1.0] left-1/2"
           style={{
-            fontSize: 'clamp(2rem, 5vw, 4rem)',
+            fontSize: 'clamp(1.6rem, 4vw, 3.2rem)',
             opacity: headingOpacity,
             top: `${lerp(50, 18, clamp01((progress - 0.64) / 0.06))}%`,
-            transform: `translate(-50%, -50%) rotate(${headingRotation}deg) scale(${lerp(0.2, 1.0, clamp01((progress - 0.42) / 0.25))})`,
+            transform: `translate(-50%, -50%) rotate(${headingRotation}deg) scale(${lerp(0.3, 1.3, clamp01((progress - 0.42) / 0.28))})`,
             pointerEvents: headingOpacity > 0.1 ? 'auto' : 'none',
           }}
         >

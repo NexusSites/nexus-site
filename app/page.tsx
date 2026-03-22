@@ -37,8 +37,21 @@ export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  /* ── Lenis smooth scroll ── */
+  /* ── Scroll to top on load ── */
   useEffect(() => {
+    window.history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+  }, []);
+
+  /* ── Lock scroll during preloader, init Lenis after ── */
+  useEffect(() => {
+    if (!loaded) {
+      document.body.style.overflow = 'hidden';
+      return;
+    }
+    document.body.style.overflow = '';
+    window.scrollTo(0, 0);
+
     const lenis = new Lenis({
       duration: 1.25,
       easing:   (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -52,7 +65,7 @@ export default function Home() {
     requestAnimationFrame(raf);
 
     return () => lenis.destroy();
-  }, []);
+  }, [loaded]);
 
   const openModal  = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);

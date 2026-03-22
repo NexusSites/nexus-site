@@ -27,7 +27,7 @@ const O_CENTER_X  = -0.35;
 const O_GAP_DEG   = 90;                           // gap size in degrees
 const O_ARC       = (360 - O_GAP_DEG) * Math.PI / 180; // arc length
 const O_ROT_Z     = 22 * Math.PI / 180;           // final gap rotation toward slash
-const O_ROLL_TURNS = 3;                            // number of full rolls before settling
+const O_ROLL_TURNS = 1.5;                          // number of full rolls before settling
 const O_ROLL_START = (O_ROLL_TURNS * Math.PI * 2) + O_ROT_Z; // start rotation (rolls forward to O_ROT_Z)
 
 // Slash /
@@ -84,6 +84,8 @@ function OSlashChevron({ progressRef }: { progressRef: React.MutableRefObject<nu
 
   const whiteMat = useMemo(() => new THREE.MeshStandardMaterial({
     color: '#ffffff',
+    emissive: '#ffffff',
+    emissiveIntensity: 0.6,
     roughness: 0.08,
     metalness: 0.0,
   }), []);
@@ -104,12 +106,12 @@ function OSlashChevron({ progressRef }: { progressRef: React.MutableRefObject<nu
     /* Phase 1: assemble (0 → 0.35) */
     const a = easeOut(clamp01(p / 0.35));
 
-    // O rolls in from left
-    oRef.current.position.set(lerp(-6, O_CENTER_X, a), 0, 0);
+    // O rolls in from left (starts off-screen)
+    oRef.current.position.set(lerp(-5, O_CENTER_X, a), 0, 0);
     oRef.current.rotation.set(0, 0, lerp(O_ROLL_START, O_ROT_Z, a));
 
     // / drops in from above
-    slashRef.current.position.set(0, lerp(5, 0, a), lerp(-0.5, 0, a));
+    slashRef.current.position.set(0, lerp(3, 0, a), lerp(-0.5, 0, a));
     slashRef.current.rotation.set(
       lerp(-Math.PI / 2, 0, a),
       0,
@@ -117,7 +119,7 @@ function OSlashChevron({ progressRef }: { progressRef: React.MutableRefObject<nu
     );
 
     // > flies in from right
-    chevRef.current.position.set(lerp(6, CHEV_X, a), 0, lerp(1.5, 0, a));
+    chevRef.current.position.set(lerp(3, CHEV_X, a), 0, lerp(1.5, 0, a));
     chevRef.current.rotation.set(0, lerp(-Math.PI * 0.5, 0, a), 0);
 
     /* Phase 2: gate zoom (0.35 → 0.50) */
@@ -182,7 +184,7 @@ export default function HeroCanvas({ progress }: HeroCanvasProps) {
     <Canvas
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
       gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
-      camera={{ position: [0, 0, 2.8], fov: 42 }}
+      camera={{ position: [0, 0, 3.6], fov: 42 }}
       dpr={[1, 2]}
     >
       <color attach="background" args={['#000000']} />
