@@ -137,7 +137,13 @@ export default function NavBar({ onCtaClick, ready = false }: NavBarProps) {
         {/* ── Brand ── */}
         <a
           href="#hero"
-          className="flex items-center" style={{ position: 'relative', left: '4rem' }}
+          onClick={(e) => {
+            e.preventDefault();
+            const lenis = (window as unknown as Record<string, { scrollTo: (target: number) => void }>).__lenis;
+            if (lenis) lenis.scrollTo(0);
+            else window.scrollTo(0, 0);
+          }}
+          className="flex items-center cursor-pointer" style={{ position: 'relative', left: '4rem' }}
           data-cursor-hover
         >
           <NavLogo ready={ready} />
