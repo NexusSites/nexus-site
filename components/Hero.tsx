@@ -183,20 +183,22 @@ export default function Hero({ ready = false, onUnlock }: { ready?: boolean; onU
   const straightenT = clamp01((progress - 0.50) / 0.15);
   const headingRotation = SLASH_DEG * (1 - straightenT);
   /* Steps overlay — starts appearing while heading is almost in place */
-  const stepsOpacity = clamp01((progress - 0.66) / 0.06);
+  const stepsOpacity = clamp01((progress - 0.58) / 0.04);
 
   return (
     <section
       ref={sectionRef}
       id="hero"
       className="relative bg-black"
-      style={{ height: '1400vh' }}
+      style={{ height: viewSize.w < 768 ? '500vh' : '1400vh' }}
     >
       {/* ── Sticky viewport ── */}
       <div ref={stickyRef} className="sticky top-0 h-screen overflow-hidden" onMouseMove={onMouseMove} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
 
         {/* Full-screen N canvas */}
-        <HeroCanvas progress={progress} />
+        <div className="absolute inset-0 z-[1] r3f-canvas">
+          <HeroCanvas progress={progress} />
+        </div>
 
         {/* ── Matrix rain — revealed by flashlight (mouse or touch) ── */}
         <div
@@ -332,7 +334,7 @@ export default function Hero({ ready = false, onUnlock }: { ready?: boolean; onU
           style={{
             fontSize: 'clamp(1.6rem, 4vw, 3.2rem)',
             opacity: headingOpacity,
-            top: `${lerp(50, 28, clamp01((progress - 0.64) / 0.06))}%`,
+            top: `${lerp(50, 28, clamp01((progress - 0.56) / 0.04))}%`,
             transform: `translate(-50%, -50%) rotate(${headingRotation}deg) scale(${lerp(0.3, 1.3, clamp01((progress - 0.42) / 0.28))})`,
             pointerEvents: headingOpacity > 0.1 ? 'auto' : 'none',
           }}
@@ -343,11 +345,17 @@ export default function Hero({ ready = false, onUnlock }: { ready?: boolean; onU
         {/* ── Steps — horizontal scroll with progress bar ── */}
         {(() => {
           // Steps phase: starts scrolling only after menu is fully visible
-          const stepsStart = 0.72;
-          const stepsEnd = 0.95;
-          const stepsT = clamp01((progress - stepsStart) / (stepsEnd - stepsStart));
-          // Smooth 0→3 for scroll-driven slide
-          const smoothPos = stepsT * 3;
+          const stepsAppear = 0.60;
+          const stepsT = clamp01((progress - stepsAppear) / (1.0 - stepsAppear));
+          // Each step: 85% hold in center, 15% transition to next
+          // Map to 0→4 so each step (including 4) gets a full zone, clamp at 3
+          const raw = stepsT * 4;
+          const idx = Math.floor(raw);
+          const frac = raw - idx;
+          // 50% hold, 50% smooth transition
+          const eased = frac < 0.5 ? 0 : (frac - 0.5) / 0.5;
+          const smooth = eased * eased * (3 - 2 * eased);
+          const smoothPos = Math.min(3, idx + smooth);
 
           return (
             <div
@@ -369,10 +377,10 @@ export default function Hero({ ready = false, onUnlock }: { ready?: boolean; onU
                     className="absolute px-8 md:px-16"
                     style={{
                       top: '50%',
-                      left: `calc(50% - ${offset * 40}%)`,
-                      transform: 'translateX(-50%)',
+                      left: '50%',
+                      transform: `translateX(calc(-50% - ${offset * 100}vw))`,
                       width: 'min(500px, 85vw)',
-                      opacity: Math.max(0, 1 - Math.abs(offset) * 1.2),
+                      opacity: Math.max(0, 1 - Math.abs(offset) * 2),
                     }}
                   >
                     <span

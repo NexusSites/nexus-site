@@ -80,7 +80,7 @@ function OSlashChevron({ progressRef }: { progressRef: React.MutableRefObject<nu
   const chevRef   = useRef<THREE.Mesh>(null);
   const groupRef  = useRef<THREE.Group>(null);
   const smoothed  = useRef(0);
-  const { scene } = useThree();
+  const { scene, camera, size } = useThree();
 
   const whiteMat = useMemo(() => new THREE.MeshStandardMaterial({
     color: '#ffffff',
@@ -100,7 +100,7 @@ function OSlashChevron({ progressRef }: { progressRef: React.MutableRefObject<nu
   useFrame(() => {
     if (!oRef.current || !slashRef.current || !chevRef.current || !groupRef.current) return;
 
-    smoothed.current += (progressRef.current - smoothed.current) * 0.055;
+    smoothed.current += (progressRef.current - smoothed.current) * 0.08;
     const p = smoothed.current;
 
     /* Phase 1: assemble (0 → 0.35) */
@@ -121,6 +121,13 @@ function OSlashChevron({ progressRef }: { progressRef: React.MutableRefObject<nu
     // > flies in from right
     chevRef.current.position.set(lerp(3, CHEV_X, a), 0, lerp(1.5, 0, a));
     chevRef.current.rotation.set(0, lerp(-Math.PI * 0.5, 0, a), 0);
+
+    /* Camera zoom — moves closer as text fades (0.25 → 0.38) */
+    const isMobile = size.width < 768;
+    const zBase = isMobile ? 4.4 : 3.6;
+    const zEnd  = isMobile ? 3.4 : 2.8;
+    const zoomT = easeOut(clamp01((p - 0.25) / 0.13));
+    camera.position.z = lerp(zBase, zEnd, zoomT);
 
     /* Phase 2: gate zoom (0.35 → 0.50) */
     const s2 = easeIn(clamp01((p - 0.35) / 0.15));
@@ -182,10 +189,10 @@ export default function HeroCanvas({ progress }: HeroCanvasProps) {
 
   return (
     <Canvas
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-      gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', touchAction: 'pan-y' }}
+      gl={{ antialias: true, alpha: false }}
       camera={{ position: [0, 0, 3.6], fov: 42 }}
-      dpr={[1, 2]}
+      dpr={[1, 1.5]}
     >
       <color attach="background" args={['#000000']} />
       <ambientLight intensity={0.2} />

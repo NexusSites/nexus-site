@@ -18,7 +18,8 @@
 
 /* ─── Base ────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: initial; }
+html { scroll-behavior: initial; scrollbar-width: none; max-width: 100vw; }
+html::-webkit-scrollbar { display: none; }
 
 body {
   background: #000;
@@ -44,6 +45,10 @@ button { font-family: inherit; }
 .text-display  { font-size: var(--text-display);  }
 .text-headline { font-size: var(--text-headline); }
 .text-subhead  { font-size: var(--text-subhead);  }
+
+/* ─── R3F canvas — allow vertical scroll on mobile ── */
+.r3f-canvas { will-change: transform; }
+.r3f-canvas div { touch-action: pan-y !important; }
 
 /* ─── Clip for text-reveal animation ─────────────── */
 .line-mask { overflow: hidden; }

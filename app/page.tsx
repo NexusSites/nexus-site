@@ -78,7 +78,7 @@ export default function Home() {
   const closeModal = () => setModalOpen(false);
 
   return (
-    <>
+    <div className="overflow-x-clip">
       {/* ── Preloader ── */}
       {!loaded && <Preloader onComplete={() => setLoaded(true)} />}
 
@@ -94,6 +94,6 @@ export default function Home() {
 
       {/* ── Modal ── */}
       <ContactModal isOpen={modalOpen} onClose={closeModal} />
-    </>
+    </div>
   );
 }
