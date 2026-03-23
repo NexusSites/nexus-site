@@ -21,8 +21,16 @@ const MatrixRain = dynamic(() => import('./MatrixRain'), { ssr: false });
 
 const EXPO = [0.19, 1, 0.22, 1] as const;
 
-/* ── Typing text ── */
-const HERO_TEXT = 'שלום, החיפוש שלך נגמר.\nברוך הבא לאתר החדש שלך.';
+/* ── Typing messages — cycle with delete effect ── */
+const HERO_MESSAGES = [
+  'שלום, החיפוש שלך נגמר.\nברוך הבא לאתר החדש שלך.',
+  'עיצוב שמדבר.\nפיתוח שעובד.',
+  'אנחנו CODE.\nהצוות שלך לדיגיטל.',
+  'חוויה דיגיטלית\nשמניעה עסקים קדימה.',
+];
+
+/* Max lines across all messages for fixed height */
+const MAX_MSG_LINES = Math.max(...HERO_MESSAGES.map(m => m.split('\n').length));
 
 /* Human-like per-character delay in ms */
 function typingDelay(ch: string) {
@@ -32,6 +40,9 @@ function typingDelay(ch: string) {
   if (ch === '.') return 300 + Math.random() * 100;
   return 55 + Math.random() * 45;
 }
+
+/* Faster delete speed */
+const DELETE_DELAY = 25;
 
 /* Body words to reveal one by one */
 const WORDS = [
@@ -64,22 +75,42 @@ function wordStyle(wordIndex: number, total: number, progress: number, startOffs
   };
 }
 
-export default function Hero({ ready = false }: { ready?: boolean }) {
+export default function Hero({ ready = false, onUnlock }: { ready?: boolean; onUnlock?: () => void }) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const stickyRef  = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [showText, setShowText]   = useState(false);
+  const [clicked, setClicked]     = useState(false);
   const [tvOn, setTvOn]           = useState(false);
   const [tvContent, setTvContent] = useState(false);
+  const [msgIdx, setMsgIdx]       = useState(0);
   const [typedChars, setTypedChars] = useState(0);
   const [mouse, setMouse] = useState({ x: -9999, y: -9999 });
   const [viewSize, setViewSize] = useState({ w: 0, h: 0 });
+  const iconRef = useRef<HTMLDivElement>(null);
 
   /* ── Track mouse inside sticky viewport ── */
   const onMouseMove = useCallback((e: React.MouseEvent) => {
     if (!stickyRef.current) return;
     const rect = stickyRef.current.getBoundingClientRect();
     setMouse({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }, []);
+
+  /* ── Touch = flashlight follows finger ── */
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!stickyRef.current) return;
+    const rect = stickyRef.current.getBoundingClientRect();
+    const t = e.touches[0];
+    setMouse({ x: t.clientX - rect.left, y: t.clientY - rect.top });
+  }, []);
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!stickyRef.current) return;
+    const rect = stickyRef.current.getBoundingClientRect();
+    const t = e.touches[0];
+    setMouse({ x: t.clientX - rect.left, y: t.clientY - rect.top });
+  }, []);
+  const onTouchEnd = useCallback(() => {
+    setMouse({ x: -9999, y: -9999 });
   }, []);
 
   /* ── Track viewport size for canvas ── */
@@ -90,24 +121,44 @@ export default function Hero({ ready = false }: { ready?: boolean }) {
     return () => window.removeEventListener('resize', update);
   }, []);
 
-  /* ── TV turn-on → typing animation ── */
+  /* ── TV turn-on — triggered by click ── */
   useEffect(() => {
-    if (!ready) return;
-    // Phase 1: TV flickers on (scaleY expands)
+    if (!clicked) return;
     const t1 = setTimeout(() => setTvOn(true), 100);
-    // Phase 2: content appears after TV is on
     const t2 = setTimeout(() => setTvContent(true), 550);
-    // Phase 3: start typing after content is visible
-    const timers: ReturnType<typeof setTimeout>[] = [t1, t2];
-    let elapsed = 750;
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [clicked]);
 
-    for (let i = 0; i < HERO_TEXT.length; i++) {
-      elapsed += typingDelay(HERO_TEXT[i]);
+  /* ── Type → pause → delete → next message loop ── */
+  useEffect(() => {
+    if (!ready || !tvContent) return;
+    const text = HERO_MESSAGES[msgIdx];
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let elapsed = 0;
+
+    // Phase 1: type in
+    for (let i = 0; i < text.length; i++) {
+      elapsed += typingDelay(text[i]);
       timers.push(setTimeout(() => setTypedChars(i + 1), elapsed));
     }
 
+    // Phase 2: pause
+    elapsed += 2000;
+
+    // Phase 3: delete
+    for (let i = text.length; i >= 0; i--) {
+      elapsed += DELETE_DELAY;
+      timers.push(setTimeout(() => setTypedChars(i), elapsed));
+    }
+
+    // Phase 4: move to next message
+    elapsed += 400;
+    timers.push(setTimeout(() => {
+      setMsgIdx((msgIdx + 1) % HERO_MESSAGES.length);
+    }, elapsed));
+
     return () => timers.forEach(clearTimeout);
-  }, [ready]);
+  }, [ready, tvContent, msgIdx]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -131,7 +182,7 @@ export default function Hero({ ready = false }: { ready?: boolean }) {
   const headingOpacity = clamp01((progress - 0.42) / 0.06);
   const straightenT = clamp01((progress - 0.50) / 0.15);
   const headingRotation = SLASH_DEG * (1 - straightenT);
-  /* Steps overlay — appears after heading settles */
+  /* Steps overlay — starts appearing while heading is almost in place */
   const stepsOpacity = clamp01((progress - 0.66) / 0.06);
 
   return (
@@ -139,19 +190,19 @@ export default function Hero({ ready = false }: { ready?: boolean }) {
       ref={sectionRef}
       id="hero"
       className="relative bg-black"
-      style={{ height: '600vh' }}
+      style={{ height: '1400vh' }}
     >
       {/* ── Sticky viewport ── */}
-      <div ref={stickyRef} className="sticky top-0 h-screen overflow-hidden" onMouseMove={onMouseMove}>
+      <div ref={stickyRef} className="sticky top-0 h-screen overflow-hidden" onMouseMove={onMouseMove} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
 
         {/* Full-screen N canvas */}
         <HeroCanvas progress={progress} />
 
-        {/* ── Matrix rain — revealed only by flashlight ── */}
+        {/* ── Matrix rain — revealed by flashlight (mouse or touch) ── */}
         <div
           className="absolute inset-0 z-[4]"
           style={{
-            opacity: showText ? 0 : 1,
+            opacity: !clicked || showText ? 0 : 1,
             transition: 'opacity 0.6s',
             pointerEvents: 'none',
             maskImage: `radial-gradient(circle 260px at ${mouse.x}px ${mouse.y}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)`,
@@ -161,26 +212,28 @@ export default function Hero({ ready = false }: { ready?: boolean }) {
           {viewSize.w > 0 && <MatrixRain width={viewSize.w} height={viewSize.h} />}
         </div>
 
-        {/* ── Typing text inside terminal window ── */}
+        {/* ── Typing text inside terminal window — appears after click ── */}
         <motion.div
           className="absolute inset-0 z-[5] flex items-center justify-center"
-          animate={{ opacity: showText ? 0 : 0.85, y: showText ? -30 : 0 }}
+          animate={{ opacity: !clicked ? 0 : showText ? 0 : 0.85, y: showText ? -30 : 0 }}
           transition={{ duration: 0.6, ease: EXPO }}
           style={{ pointerEvents: 'none' }}
         >
-          {/* Terminal frame — TV turn-on effect */}
+          {/* Terminal frame — app open effect */}
           <motion.div
             className="rounded-xl overflow-hidden shadow-2xl border border-white/10"
-            initial={{ scaleY: 0.005, scaleX: 0.6, opacity: 0 }}
+            initial={{ scale: 0.15, opacity: 0, borderRadius: '22px', y: 20 }}
             animate={{
-              scaleY: tvOn ? 1 : 0.005,
-              scaleX: tvOn ? 1 : 0.6,
-              opacity: tvOn ? 1 : 0.8,
+              scale: tvOn ? 1 : 0.15,
+              opacity: tvOn ? 1 : 0,
+              borderRadius: tvOn ? '12px' : '22px',
+              y: tvOn ? 0 : 20,
             }}
             transition={{
-              scaleY: { duration: 0.4, ease: [0.34, 1.56, 0.64, 1] },
-              scaleX: { duration: 0.6, ease: EXPO },
-              opacity: { duration: 0.15 },
+              scale: { duration: 0.5, ease: [0.34, 1.56, 0.64, 1] },
+              opacity: { duration: 0.2 },
+              borderRadius: { duration: 0.4, ease: EXPO },
+              y: { duration: 0.5, ease: EXPO },
             }}
             style={{
               width: 'clamp(320px, 42vw, 560px)',
@@ -204,10 +257,11 @@ export default function Hero({ ready = false }: { ready?: boolean }) {
             <div
               className="p-5 text-center"
               dir="rtl"
-              style={{ height: `${HERO_TEXT.split('\n').length * 2.4 + 1}em` }}
+              style={{ height: `${MAX_MSG_LINES * 2.4 + 1}em` }}
             >
-              {HERO_TEXT.split('\n').map((line, li) => {
-                const lineStart = HERO_TEXT.split('\n').slice(0, li).join('\n').length + (li > 0 ? 1 : 0);
+              {HERO_MESSAGES[msgIdx].split('\n').map((line: string, li: number) => {
+                const lines = HERO_MESSAGES[msgIdx].split('\n');
+                const lineStart = lines.slice(0, li).join('\n').length + (li > 0 ? 1 : 0);
                 const lineEnd = lineStart + line.length;
                 const visibleCount = Math.max(0, Math.min(line.length, typedChars - lineStart));
                 if (visibleCount === 0 && typedChars <= lineStart) return <div key={li} className="h-[2.4em]" />;
@@ -274,11 +328,11 @@ export default function Hero({ ready = false }: { ready?: boolean }) {
 
         {/* ── Heading — starts centered on slab, moves up when steps appear ── */}
         <h2
-          className="absolute z-20 font-black text-[#111] text-center tracking-[-0.04em] leading-[1.0] left-1/2"
+          className="absolute z-[21] font-black text-[#111] text-center tracking-[-0.04em] leading-[1.0] left-1/2"
           style={{
             fontSize: 'clamp(1.6rem, 4vw, 3.2rem)',
             opacity: headingOpacity,
-            top: `${lerp(50, 18, clamp01((progress - 0.64) / 0.06))}%`,
+            top: `${lerp(50, 28, clamp01((progress - 0.64) / 0.06))}%`,
             transform: `translate(-50%, -50%) rotate(${headingRotation}deg) scale(${lerp(0.3, 1.3, clamp01((progress - 0.42) / 0.28))})`,
             pointerEvents: headingOpacity > 0.1 ? 'auto' : 'none',
           }}
@@ -286,57 +340,143 @@ export default function Hero({ ready = false }: { ready?: boolean }) {
           מה אנחנו<br />עושים?
         </h2>
 
-        {/* ── Steps — fade in after heading settles ── */}
-        <div
-          className="absolute inset-0 z-20 flex items-center justify-center px-6 md:px-12 pt-[22vh]"
-          style={{
-            opacity: stepsOpacity,
-            pointerEvents: stepsOpacity > 0.1 ? 'auto' : 'none',
-          }}
-        >
-          <div
-            className="w-full max-w-2xl"
-          >
-            {STEPS.map((step, i) => {
-              const stepOpacity = clamp01((progress - (0.70 + i * 0.03)) / 0.04);
-              return (
-                <div
-                  key={step.num}
-                  className="flex items-start gap-6 md:gap-10 py-3 md:py-4 border-b border-[#111]/10"
-                  style={{
-                    opacity: stepOpacity,
-                    transform: `translateY(${(1 - stepOpacity) * 20}px)`,
-                  }}
-                >
-                  <span
-                    className="font-black text-[#111]/15 shrink-0 leading-none tabular-nums"
-                    style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)' }}
-                    dir="ltr"
+        {/* ── Steps — horizontal scroll with progress bar ── */}
+        {(() => {
+          // Steps phase: starts scrolling only after menu is fully visible
+          const stepsStart = 0.72;
+          const stepsEnd = 0.95;
+          const stepsT = clamp01((progress - stepsStart) / (stepsEnd - stepsStart));
+          // Smooth 0→3 for scroll-driven slide
+          const smoothPos = stepsT * 3;
+
+          return (
+            <div
+              className="absolute inset-0 z-20 flex flex-col overflow-hidden"
+              style={{
+                opacity: stepsOpacity,
+                pointerEvents: stepsOpacity > 0.1 ? 'auto' : 'none',
+              }}
+            >
+
+              {/* Steps cards — scroll-driven horizontal slide */}
+              {STEPS.map((step, i) => {
+                // Each card: position based on smooth scroll
+                // offset = (i - smoothPos) means: current step at 0%, previous slides left, next slides right
+                const offset = i - smoothPos;
+                return (
+                  <div
+                    key={step.num}
+                    className="absolute px-8 md:px-16"
+                    style={{
+                      top: '50%',
+                      left: `calc(50% - ${offset * 40}%)`,
+                      transform: 'translateX(-50%)',
+                      width: 'min(500px, 85vw)',
+                      opacity: Math.max(0, 1 - Math.abs(offset) * 1.2),
+                    }}
                   >
-                    {step.num}
-                  </span>
-                  <div className="flex-1 pt-1">
+                    <span
+                      className="block font-black text-[#111]/30 leading-none tabular-nums mb-4"
+                      style={{ fontSize: 'clamp(3rem, 7vw, 5rem)' }}
+                      dir="ltr"
+                    >
+                      {step.num}
+                    </span>
                     <h3
-                      className="font-bold text-[#111] tracking-[-0.02em] leading-tight mb-1"
-                      style={{ fontSize: 'clamp(1rem, 2.2vw, 1.5rem)' }}
+                      className="font-bold text-[#111] tracking-[-0.02em] leading-tight mb-3"
+                      style={{ fontSize: 'clamp(1.4rem, 3vw, 2rem)' }}
                     >
                       {step.title}
                     </h3>
-                    <p className="text-[#111]/45 font-light leading-relaxed text-xs md:text-sm max-w-md">
+                    <p className="text-[#111]/50 font-light leading-relaxed text-sm md:text-base max-w-sm">
                       {step.desc}
                     </p>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                );
+              })}
+            </div>
+          );
+        })()}
 
-        {/* Scroll hint — follows cursor */}
+        {/* ── App icon — click to open terminal ── */}
+        <motion.div
+          className="absolute inset-0 z-[25] flex flex-col items-center justify-center cursor-pointer"
+          animate={{ opacity: clicked ? 0 : ready ? 1 : 0 }}
+          transition={{ duration: 0.5, ease: EXPO }}
+          style={{ pointerEvents: clicked ? 'none' : 'auto' }}
+          onClick={() => { setClicked(true); onUnlock?.(); }}
+        >
+          <motion.div
+            ref={iconRef}
+            className="flex flex-col items-center gap-3"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: ready && !clicked ? 1 : 0.8, opacity: ready && !clicked ? 1 : 0 }}
+            transition={{ duration: 0.8, ease: EXPO }}
+            style={{ perspective: 400 }}
+          >
+            {/* App icon container */}
+            <motion.div
+              className="rounded-[22px] flex items-center justify-center shadow-2xl border border-white/15"
+              animate={(() => {
+                if (!iconRef.current || mouse.x < 0) return { rotateX: 0, rotateY: 0, scale: 1 };
+                const rect = iconRef.current.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                const stickyRect = stickyRef.current?.getBoundingClientRect();
+                const absX = (stickyRect?.left ?? 0) + mouse.x;
+                const absY = (stickyRect?.top ?? 0) + mouse.y;
+                const dx = absX - cx;
+                const dy = absY - cy;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const maxDist = 300;
+                const strength = Math.max(0, 1 - dist / maxDist);
+                return {
+                  rotateY: (dx / maxDist) * 20 * strength,
+                  rotateX: -(dy / maxDist) * 20 * strength,
+                  scale: 1 + strength * 0.1,
+                };
+              })()}
+              transition={{ type: 'spring', stiffness: 200, damping: 20, mass: 0.5 }}
+              style={{
+                width: 80,
+                height: 80,
+                background: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(40px) saturate(1.8)',
+                WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+                boxShadow: 'inset 0 0.5px 0 rgba(255,255,255,0.25), 0 8px 32px rgba(0,0,0,0.4)',
+              }}
+            >
+              <svg width="44" height="44" viewBox="100 0 200 130" fill="none">
+                <defs>
+                  <mask id="hero-o-cut">
+                    <rect width="100%" height="100%" fill="white" />
+                    <path d="M 168,128 L 232,2" stroke="black" strokeWidth="28" />
+                  </mask>
+                </defs>
+                <circle cx="145" cy="65" r="43" stroke="white" strokeWidth="7" fill="none" mask="url(#hero-o-cut)" />
+                <line x1="200" y1="65" x2="168" y2="128" stroke="white" strokeWidth="7" strokeLinecap="round" />
+                <line x1="200" y1="65" x2="232" y2="2" stroke="white" strokeWidth="7" strokeLinecap="round" />
+                <path d="M 245,18 L 285,65 L 245,112" stroke="white" strokeWidth="7" strokeLinecap="round" strokeLinejoin="miter" fill="none" />
+              </svg>
+            </motion.div>
+            {/* App label */}
+            <span className="text-[0.65rem] tracking-[0.15em] text-white/50 font-medium uppercase">code.exe</span>
+            {/* Click here hint */}
+            <motion.span
+              className="text-sm tracking-[0.2em] text-white/70 font-medium uppercase mt-4"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              click to open
+            </motion.span>
+          </motion.div>
+        </motion.div>
+
+        {/* Scroll hint — follows cursor after terminal opens */}
         <motion.div
           className="absolute z-[6] pointer-events-none"
           animate={{
-            opacity: showText ? 0 : 1,
+            opacity: !clicked || showText ? 0 : tvContent ? 1 : 0,
           }}
           transition={{ duration: 0.4, ease: EXPO }}
           style={{

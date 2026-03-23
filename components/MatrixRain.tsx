@@ -5,9 +5,10 @@ import { useEffect, useRef } from 'react';
 interface MatrixRainProps {
   width: number;
   height: number;
+  subtle?: boolean;
 }
 
-export default function MatrixRain({ width, height }: MatrixRainProps) {
+export default function MatrixRain({ width, height, subtle = false }: MatrixRainProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const columnsRef = useRef<number[]>([]);
 
@@ -38,7 +39,7 @@ export default function MatrixRain({ width, height }: MatrixRainProps) {
         const char = chars[Math.floor(Math.random() * chars.length)];
         const x = i * fontSize;
         const y = drops[i] * fontSize;
-        ctx.globalAlpha = 0.4 + Math.random() * 0.4;
+        ctx.globalAlpha = subtle ? 0.12 + Math.random() * 0.15 : 0.4 + Math.random() * 0.4;
         ctx.fillText(char, x, y);
         if (y > height && Math.random() > 0.975) {
           drops[i] = 0;

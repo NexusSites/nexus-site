@@ -35,6 +35,7 @@ import ContactModal    from '@/components/ContactModal';
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
 
   /* ── Scroll to top on load ── */
   useEffect(() => {
@@ -48,6 +49,10 @@ export default function Home() {
       document.body.style.overflow = 'hidden';
       return;
     }
+    if (!unlocked) {
+      document.body.style.overflow = 'hidden';
+      return;
+    }
     document.body.style.overflow = '';
     window.scrollTo(0, 0);
 
@@ -57,6 +62,9 @@ export default function Home() {
       smoothWheel: true,
     });
 
+    // Expose lenis globally so components can use it
+    (window as unknown as Record<string, unknown>).__lenis = lenis;
+
     const raf = (time: number) => {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -64,7 +72,7 @@ export default function Home() {
     requestAnimationFrame(raf);
 
     return () => lenis.destroy();
-  }, [loaded]);
+  }, [loaded, unlocked]);
 
   const openModal  = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -76,7 +84,7 @@ export default function Home() {
 
       {/* ── Page sections ── */}
       <NavBar         onCtaClick={openModal} ready={loaded} />
-      <Hero ready={loaded} />
+      <Hero ready={loaded} onUnlock={() => setUnlocked(true)} />
       <CaseStudies    onCtaClick={openModal} />
       <Stats />
       <About />
